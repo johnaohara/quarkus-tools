@@ -1,0 +1,203 @@
+RULE Camel-k ApplicationRuntime initialize
+CLASS org.apache.camel.k.quarkus.ApplicationRuntime
+METHOD initializing 
+AT ENTRY
+IF  true
+DO  traceln("**** ApplicationRuntime.initializing()")
+ENDRULE
+
+RULE Camel-k RouteBuilder initialized
+CLASS org.apache.camel.builder.RouteBuilder
+METHOD checkInitialized
+AT ENTRY
+IF  true
+DO  traceln("**** RouteBuilder.checkInitialized()")
+ENDRULE
+
+RULE Trace DirectByteBuffer init
+CLASS java.nio.DirectByteBuffer
+METHOD <init>(long, int)
+AT ENTRY
+IF true
+DO traceln("**** java.nio.DirectByteBuffer.<init>" );
+traceln("**** Address: " + $1 );
+traceln("**** Capacity: " + $2 );
+traceStack("Invoking constructor of DirectByteBuffer\n", 40)
+ENDRULE
+
+RULE Trace DirectByteBuffer init size
+CLASS java.nio.DirectByteBuffer
+METHOD <init>(int)
+AT ENTRY
+IF true
+DO traceln("**** java.nio.DirectByteBuffer.<init>(int): " + Integer.toString( $1 ) );
+traceStack("Invoking constructor of DirectByteBuffer\n");
+ENDRULE
+
+RULE filter outbound messsages
+CLASS io.netty.channel.nio.AbstractNioByteChannel
+METHOD filterOutboundMessage
+AT ENTRY
+BIND byteBuf:io.netty.buffer.ByteBuf = $1;
+IF true
+DO traceln("**** AbstractNioByteChannel.filterOutboundMessage: isDirect(): " + byteBuf.isDirect());
+traceln("**** AbstractNioByteChannel.filterOutboundMessage: isDirect(): " + byteBuf.getClass().getName());
+#DO traceln("**** AbstractNioByteChannel.filterOutboundMessage: isDirect()");
+ENDRULE
+
+
+RULE trace allocate PoolChunk
+CLASS io.netty.buffer.PoolChunk
+METHOD <init>(io.netty.buffer.PoolArena, java.lang.Object, int, int, int, int, int)
+AT ENTRY
+IF true
+DO traceln("**** io.netty.buffer.PoolChunk.<init>" );
+traceln("**** pageSize: " + $3 );
+traceln("**** maxOrder: " + $4 );
+traceln("**** pageShifts: " + $5 );
+traceln("**** chunkSize: " + $6 );
+traceStack("Invoking constructor of PoolChunk\n", 40)
+ENDRULE
+
+
+RULE trace PooledHeapByteBuf init
+CLASS io.netty.buffer.PooledHeapByteBuf
+METHOD <init>
+AT ENTRY
+IF TRUE
+DO traceStack("PooledHeapByteBuf.<init>\n");
+ENDRULE
+
+RULE trace PooledUnsafeDirectByteBuf init
+CLASS io.netty.buffer.PooledUnsafeDirectByteBuf
+METHOD <init>
+AT ENTRY
+IF TRUE
+DO traceStack("PooledUnsafeDirectByteBuf.<init>\n");
+ENDRULE
+
+RULE responseBody Exchange has out
+CLASS org.apache.camel.component.netty4.http.handlers.HttpServerChannelHandler
+METHOD getResponseBody
+AT ENTRY
+BIND exchange:Exchange = $1;
+IF TRUE
+DO traceln("**** getResponseBody exhange.hasOut: " + Boolean.toString(exchange.hasOut()));
+ENDRULE
+
+
+RULE MessageSupport.getBody Exchange is null
+CLASS org.apache.camel.support.MessageSupport
+METHOD getBody
+AT LINE 79
+IF TRUE
+DO traceln("**** Exchange is null: " + Boolean.toString($e == null));
+ENDRULE
+
+RULE MessageSupport.getBody answer is null
+CLASS org.apache.camel.support.MessageSupport
+METHOD getBody
+AT LINE 86
+IF TRUE
+DO traceln("**** answer is null: " + Boolean.toString($answer == null));
+ENDRULE
+
+RULE MessageSupport.getBody converter is null
+CLASS org.apache.camel.support.MessageSupport
+METHOD getBody
+AT LINE 85
+IF TRUE
+DO traceln("**** converter is null: " + Boolean.toString($converter == null));
+traceln("**** converter type: " + $converter.getClass().getName());
+ENDRULE
+
+RULE NettyConverter toByteBuffer
+CLASS org.apache.camel.component.netty4.NettyConverter
+METHOD toByteBuffer
+AT ENTRY
+IF TRUE
+DO traceln("**** NettyConverter.toByteBuffer()");
+ENDRULE
+
+
+
+RULE BaseTypeConverterRegistry convertTo
+CLASS org.apache.camel.impl.converter.BaseTypeConverterRegistry
+METHOD convertTo
+AT ENTRY
+IF TRUE
+DO traceln("**** BaseTypeConverterRegistry.convertTo()");
+ENDRULE
+
+RULE BaseTypeConverterRegistry doConvertTo
+CLASS org.apache.camel.impl.converter.BaseTypeConverterRegistry
+METHOD doConvertTo
+AT ENTRY
+IF TRUE
+DO traceln("**** BaseTypeConverterRegistry.doConvertTo()");
+ENDRULE
+
+RULE NettyConverterLoader$3 doCOnvert
+CLASS org.apache.camel.component.netty4.NettyConverterLoader$3
+METHOD doConvert
+AT ENTRY
+IF TRUE
+DO traceln("**** NettyConverterLoader$3.doConvert()");
+ENDRULE
+
+
+RULE NettyConverterLoader$BaseTypeConverter convertTo
+CLASS org.apache.camel.component.netty4.NettyConverterLoader$BaseTypeConverter
+METHOD convertTo
+AT ENTRY
+IF TRUE
+DO traceln("**** NettyConverterLoader$BaseTypeConverter.convertTo()");
+ENDRULE
+
+
+#RULE Netty executor tasks
+#CLASS io.netty.util.concurrent.AbstractEventExecutor
+#METHOD safeExecute
+#AT ENTRY
+#IF true
+#DO traceln("**** AbstractEventExecutor.safeExecute: Runnable; " + $1.getClass().getName());
+##traceStack("Invoking constructor of DirectByteBuffer\n");
+#ENDRULE
+
+#RULE Netty ByteBufAllocator buffer
+#INTERFACE io.netty.buffer.ByteBufAllocator
+#METHOD buffer
+#AT ENTRY
+#IF true
+#DO traceln("**** ByteBufAllocator.buffer");
+#traceStack("Allocating buffer\n");
+#ENDRULE
+
+#RULE Netty ByteBufAllocator ioBuffer
+#INTERFACE io.netty.buffer.ByteBufAllocator
+#METHOD ioBuffer
+#AT ENTRY
+#IF true
+#DO traceln("**** ByteBufAllocator.ioBuffer");
+#traceStack("Allocating ioBuffer\n");
+#ENDRULE
+
+
+#RULE Netty ByteBufAllocator heapBuffer
+#INTERFACE io.netty.buffer.ByteBufAllocator
+#METHOD heapBuffer
+#AT ENTRY
+#IF true
+#DO traceln("**** ByteBufAllocator.heapBuffer");
+#traceStack("Allocating heapBuffer\n");
+#ENDRULE
+
+#RULE Netty ByteBufAllocator directBuffer
+#INTERFACE io.netty.buffer.ByteBufAllocator
+#METHOD directBuffer
+#AT ENTRY
+#IF true
+#DO traceln("**** ByteBufAllocator.directBuffer");
+#traceStack("Allocating directBuffer\n");
+#ENDRULE
+
